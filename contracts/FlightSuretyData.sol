@@ -90,7 +90,7 @@ contract FlightSuretyData is Ownable {
             require(authorizedContracts[msg.sender], "Caller is not an authorized contract");
         }
         else {
-            require(isOwner(), "Caller is not contract owner");
+            require(owner() == tx.origin, "Caller is not contract owner");
         }
         _;
     }
