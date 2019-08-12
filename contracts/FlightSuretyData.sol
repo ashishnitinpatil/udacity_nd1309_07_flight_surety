@@ -123,7 +123,7 @@ contract FlightSuretyData is Ownable {
         requireAuthorization
     {
         authorizedContracts[authorizedContract] = true;
-        numAuthorizedContracts.add(1);
+        numAuthorizedContracts = numAuthorizedContracts.add(1);
         emit ContractAuthorized(authorizedContract);
     }
 
@@ -134,7 +134,7 @@ contract FlightSuretyData is Ownable {
         external
         requireAuthorization
     {
-        numAuthorizedContracts.sub(1);
+        numAuthorizedContracts = numAuthorizedContracts.sub(1);
         delete authorizedContracts[deauthorizedContract];
         emit ContractDeauthorized(deauthorizedContract);
     }
@@ -164,7 +164,7 @@ contract FlightSuretyData is Ownable {
     {
         if(!airlines[airline]) {
             airlines[airline] = true;
-            numAirlines.add(1);
+            numAirlines = numAirlines.add(1);
             emit AirlineRegistered(airline);
         }
     }
@@ -181,7 +181,7 @@ contract FlightSuretyData is Ownable {
     {
         if(airlines[airline]) {
             delete airlines[airline];
-            numAirlines.sub(1);
+            numAirlines = numAirlines.sub(1);
             emit AirlineDeregistered(airline);
         }
     }
@@ -195,8 +195,8 @@ contract FlightSuretyData is Ownable {
         uint256 timestamp
     )
         external
+        requireAuthorizedContract
         requireIsOperational
-        requireAuthorization
     {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
         Flight storage f = flights[flightKey];
@@ -247,8 +247,8 @@ contract FlightSuretyData is Ownable {
         for(uint256 i=0; i < flights[flightKey].insurees.length; i++) {
             insuree = flights[flightKey].insurees[i];
             payout = flights[flightKey].insuredAmounts[insuree].mul(mult);
-            credits[insuree].add(payout);
-            totalPayout.add(payout);
+            credits[insuree] = credits[insuree].add(payout);
+            totalPayout = totalPayout.add(payout);
         }
         emit InsureesCredited(
             flights[flightKey].airline,
@@ -278,7 +278,7 @@ contract FlightSuretyData is Ownable {
         requireIsOperational
     {
         require(amount <= credits[insuree], "Insufficient credits balance");
-        credits[insuree].sub(amount);
+        credits[insuree] = credits[insuree].sub(amount);
         insuree.transfer(amount);
     }
 
@@ -291,6 +291,17 @@ contract FlightSuretyData is Ownable {
         returns(bool)
     {
         return operational;
+    }
+
+    /**
+    * @dev Get authorization status of contract
+    */
+    function isAuthorizedContract(address contractAddr)
+        public
+        view
+        returns(bool)
+    {
+        return authorizedContracts[contractAddr];
     }
 
     /**
@@ -346,8 +357,9 @@ contract FlightSuretyData is Ownable {
         public
         payable
     {
-        funding[msg.sender].add(msg.value);
-        emit Funded(msg.sender, msg.value);
+        uint256 amount = msg.value;
+        funding[msg.sender] = funding[msg.sender].add(amount);
+        emit Funded(msg.sender, amount);
     }
 
     function getFlightKey(

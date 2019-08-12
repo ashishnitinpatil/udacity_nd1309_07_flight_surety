@@ -19,15 +19,17 @@ contract FlightSuretyApp is Ownable {
 
     // Blocks all state changes throughout the contract if false
     bool private operational = true;
+    uint8 ON = 11;
+    uint8 OFF = 22;
 
     // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;
 
+    // Minimum funding to be provided by airlines
+    uint256 public constant MIN_FUNDING_AMOUNT = 10 ether;
+
     // Fee to be paid when registering oracle
     uint256 public constant REGISTRATION_FEE = 1 ether;
-
-    // Minimum funding amount to be paid by an airline
-    uint256 public constant MIN_FUNDING_AMOUNT = 10 ether;
 
     // Maximum allowed limit for insurance premium purchase
     uint256 public constant MAX_PREMIUM = 1 ether;
@@ -109,7 +111,7 @@ contract FlightSuretyApp is Ownable {
     modifier requireMinimumFundingContribution()
     {
         require(
-            flightSuretyData.getAirlineFundingContribution(msg.sender) >= 10 ether,
+            flightSuretyData.getAirlineFundingContribution(msg.sender) >= MIN_FUNDING_AMOUNT,
             "Airline has not contributed enough funding"
         );
         _;
@@ -121,13 +123,13 @@ contract FlightSuretyApp is Ownable {
     *      Authorizes constructed contract to access dataContract
     *      Registers sender as first airline
     */
-    constructor(address dataContract)
+    constructor(address dataContract, address firstAirline)
         public
     {
         flightSuretyData = FlightSuretyData(dataContract);
         // expecting same owner to deploy both contracts first time
         flightSuretyData.authorizeContract(address(this));
-        flightSuretyData.registerAirline(msg.sender);
+        flightSuretyData.registerAirline(firstAirline);
     }
 
     /**
@@ -139,6 +141,26 @@ contract FlightSuretyApp is Ownable {
         returns(bool)
     {
         return operational;
+    }
+
+    /**
+    * @dev Calls the data contract to whitelist an app contract
+    */
+    function authorizeContract(address contractAddr)
+        external
+        onlyOwner
+    {
+        flightSuretyData.authorizeContract(contractAddr);
+    }
+
+    /**
+    * @dev Delist an authorized app contract so that it can't call the data contract
+    */
+    function deauthorizeContract(address contractAddr)
+        external
+        onlyOwner
+    {
+        flightSuretyData.deauthorizeContract(contractAddr);
     }
 
     /**
@@ -154,33 +176,36 @@ contract FlightSuretyApp is Ownable {
         requireRegisteredAirline
         requireMinimumFundingContribution
     {
-        if(mode) {
-            operatingStatusVote[msg.sender] = 1;  // On
-        }
-        else {
-            operatingStatusVote[msg.sender] = 2;  // Off
-        }
+        uint8 previousVote = operatingStatusVote[msg.sender];
 
-        if(operatingStatusVote[msg.sender] == 1) {  // has voted On before
+        if(previousVote == ON) {
             if(!mode) {
-                operatingStatusOnVotes.sub(1);
-                operatingStatusOffVotes.add(1);
+                operatingStatusOnVotes = operatingStatusOnVotes.sub(1);
+                operatingStatusOffVotes = operatingStatusOffVotes.add(1);
             }
         }
-        else if(operatingStatusVote[msg.sender] == 2) {  // has voted Off before
+        else if(previousVote == OFF) {
             if(mode) {
-                operatingStatusOffVotes.sub(1);
-                operatingStatusOnVotes.add(1);
+                operatingStatusOffVotes = operatingStatusOffVotes.sub(1);
+                operatingStatusOnVotes = operatingStatusOnVotes.add(1);
             }
         }
         else {  // has not voted before
             if(mode) {
-                operatingStatusOnVotes.add(1);
+                operatingStatusOnVotes = operatingStatusOnVotes.add(1);
             }
             else {
-                operatingStatusOffVotes.add(1);
+                operatingStatusOffVotes = operatingStatusOffVotes.add(1);
             }
         }
+
+        if(mode) {
+            operatingStatusVote[msg.sender] = ON;
+        }
+        else {
+            operatingStatusVote[msg.sender] = OFF;
+        }
+        operatingStatusVoters.push(msg.sender);
 
         uint256 numAirlines = flightSuretyData.getNumRegisteredAirlines();
 
@@ -214,7 +239,7 @@ contract FlightSuretyApp is Ownable {
         // are voting to generate unique key to track registration votes
         bytes32 key = keccak256(abi.encodePacked(msg.sender, airline));
         if(!airlineRegistrationVote[key]) {
-            airlineRegistrationNumVotes[airline].add(1);
+            airlineRegistrationNumVotes[airline] = airlineRegistrationNumVotes[airline].add(1);
             airlineRegistrationVote[key] = true;
         }
         // Stop processing if already registered
