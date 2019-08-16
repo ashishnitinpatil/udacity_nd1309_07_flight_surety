@@ -7,6 +7,7 @@ import './flightsurety.css';
 
     let result = null;
     let airlineSelectIDs = [
+        'buy-insurance-airline',
         'register-airline-from-airline',
         'register-flight-airline',
         'fund-airline',
@@ -14,6 +15,7 @@ import './flightsurety.css';
     ];
     let flightSelectIDs = [
         'submit-oracle-number',
+        'buy-insurance-flight',
     ];
 
     let contract = new Contract('localhost', () => {
@@ -108,6 +110,21 @@ import './flightsurety.css';
                 }]);
                 if (!error)
                     addOption(val, flightSelectIDs);
+            });
+        });
+
+        DOM.elid('buy-insurance').addEventListener('click', () => {
+            let airline = DOM.elid('buy-insurance-airline').value;
+            let flight = DOM.elid('buy-insurance-flight').value.split(" ;; ")[0];
+            let timestamp = DOM.elid('buy-insurance-flight').value.split(" ;; ")[1];
+            let amount = DOM.elid('buy-insurance-amount').value;
+
+            contract.buyInsurance(airline, flight, timestamp, amount, (error, result) => {
+                display('Buy Insurance', [{
+                    label: 'Bought For',
+                    error: error,
+                    value: contract.web3.utils.fromWei(String(result.amount), 'ether') + ' ether'+' ('+result.flight+' - '+result.timestamp+')',
+                }]);
             });
         });
 

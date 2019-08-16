@@ -36,6 +36,22 @@
         <div id="passenger-container">
           <div class="row justify-content-center">
             <div class="col-6 text-center">
+              <h3>Buy Insurance</h3>
+              <form>
+                <select id="buy-insurance-airline" class="form-control">
+                  <option value="" disabled>For Airline</option>
+                </select>
+                <select id="buy-insurance-flight" class="form-control mt-2">
+                  <option value="" disabled>For Flight</option>
+                </select>
+                <input type="number" id="buy-insurance-amount" placeholder="Amount (in ETH)" class="form-control mt-2" min="0.001" max="1">
+                <btn class="btn btn-primary mt-2" id="buy-insurance">Submit</btn>
+              </form>
+            </div>
+          </div>
+          <hr>
+          <div class="row justify-content-center">
+            <div class="col-6 text-center">
               <h3>Request Flight Status</h3>
               <form>
                 <select id="submit-oracle-airline" class="form-control">
