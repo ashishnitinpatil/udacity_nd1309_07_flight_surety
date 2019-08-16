@@ -31,8 +31,7 @@ import './flightsurety.css';
         });
 
         contract.isOperational((error, result) => {
-            display('Operational Status',
-                'Check if contract is operational', [{
+            display('Operational Status', [{
                     label: 'Operational Status',
                     error: error,
                     value: result
@@ -43,12 +42,36 @@ import './flightsurety.css';
             addOption(airline, airlineSelectIDs);
         });
 
+        DOM.elid('is-registered-airline').addEventListener('click', () => {
+            let airline = DOM.elid('is-registered-airline-airline').value;
+
+            contract.isRegisteredAirline(airline, (error, result) => {
+                display('Airline Registration', [{
+                    label: 'Registration Status',
+                    error: error,
+                    value: result,
+                }]);
+            });
+        });
+
+        DOM.elid('funding-status-airline').addEventListener('click', () => {
+            let airline = DOM.elid('is-registered-airline-airline').value;
+
+            contract.getAirlineFundingContribution(airline, (error, result) => {
+                display('Airline Funding', [{
+                    label: 'Funding Amount',
+                    error: error,
+                    value: contract.web3.utils.fromWei(String(result), 'ether') + ' ether',
+                }]);
+            });
+        });
+
         DOM.elid('register-airline').addEventListener('click', () => {
             let fromAirline = DOM.elid('register-airline-from-airline').value;
             let airline = DOM.elid('register-airline-airline').value;
 
             contract.registerAirline(airline, fromAirline, (error, result) => {
-                display('Register Airline', '', [{
+                display('Register Airline', [{
                     label: 'Register Airline',
                     error: error,
                     value: result.airline + ' (' + result.fromAirline + ')',
@@ -63,7 +86,7 @@ import './flightsurety.css';
             let amount = DOM.elid('fund-amount').value;
 
             contract.fundAirline(airline, amount, (error, result) => {
-                display('Fund Airline', '', [{
+                display('Fund Airline', [{
                     label: 'Fund Airline',
                     error: error,
                     value: result.airline,
@@ -78,7 +101,7 @@ import './flightsurety.css';
 
             contract.registerFlight(airline, flight, timestamp, (error, result) => {
                 let val = result.flight + ' ;; ' + result.timestamp;
-                display('Flight Registration', '', [{
+                display('Flight Registration', [{
                     label: 'Fetch Flight Status',
                     error: error,
                     value: result.airline + ' - ' + val,
@@ -94,7 +117,7 @@ import './flightsurety.css';
             let timestamp = DOM.elid('submit-oracle-number').value.split(" ;; ")[1];
 
             contract.fetchFlightStatus(airline, flight, timestamp, (error, result) => {
-                display('Oracles', 'Trigger oracles', [{
+                display('Oracles', [{
                     label: 'Fetch Flight Status',
                     error: error,
                     value: result.airline + ' ' + result.flight + ' ' + result.timestamp,
@@ -107,12 +130,10 @@ import './flightsurety.css';
 })();
 
 
-function display(title, description, results) {
+function display(title, results) {
     let displayDiv = DOM.elid("display-wrapper");
     let section = DOM.section();
-    section.appendChild(DOM.h3(title));
-    if (description)
-        section.appendChild(DOM.p(description));
+    section.appendChild(DOM.h4(title));
     results.map((result) => {
         let row = section.appendChild(DOM.div({className: 'row'}));
         row.appendChild(
@@ -124,7 +145,7 @@ function display(title, description, results) {
         section.appendChild(row);
     })
     section.appendChild(DOM.hr());
-    displayDiv.append(section);
+    displayDiv.prepend(section);
 }
 
 

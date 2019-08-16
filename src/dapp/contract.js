@@ -34,6 +34,22 @@ export default class Contract {
             .call({from: self.owner}, callback);
     }
 
+    isRegisteredAirline(airline, callback) {
+        let self = this;
+        let payload = {airline: airline};
+        self.flightSuretyData.methods
+            .isRegisteredAirline(payload.airline)
+            .call({from: self.owner}, callback);
+    }
+
+    getAirlineFundingContribution(airline, callback) {
+        let self = this;
+        let payload = {airline: airline};
+        self.flightSuretyData.methods
+            .getAirlineFundingContribution(payload.airline)
+            .call({from: self.owner}, callback);
+    }
+
     registerAirline(airline, fromAirline, callback) {
         let self = this;
         let payload = {airline: airline, fromAirline: fromAirline}
