@@ -1,4 +1,3 @@
-
 import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
@@ -7,27 +6,103 @@ import './flightsurety.css';
 (async() => {
 
     let result = null;
+    let airlineSelectIDs = [
+        'register-airline-from-airline',
+        'register-flight-airline',
+        'fund-airline',
+        'submit-oracle-airline',
+    ];
+    let flightSelectIDs = [
+        'submit-oracle-number',
+    ];
 
     let contract = new Contract('localhost', () => {
-
-        // Read transaction
-        contract.isOperational((error, result) => {
-            console.log(error,result);
-            display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
+        function toggleContainer(on, off) {
+            $('#li-'+on+'-container').addClass('active');
+            $('#li-'+off+'-container').removeClass('active');
+            $('#'+on+'-container').show();
+            $('#'+off+'-container').hide();
+        }
+        DOM.elid('switch-to-passenger-container').addEventListener('click', () => {
+            toggleContainer('passenger', 'airline');
         });
-    
+        DOM.elid('switch-to-airline-container').addEventListener('click', () => {
+            toggleContainer('airline', 'passenger');
+        });
 
-        // User-submitted transaction
-        DOM.elid('submit-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
-            // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+        contract.isOperational((error, result) => {
+            display('Operational Status',
+                'Check if contract is operational', [{
+                    label: 'Operational Status',
+                    error: error,
+                    value: result
+                }]);
+        });
+
+        contract.airlines.map((airline) => {
+            addOption(airline, airlineSelectIDs);
+        });
+
+        DOM.elid('register-airline').addEventListener('click', () => {
+            let fromAirline = DOM.elid('register-airline-from-airline').value;
+            let airline = DOM.elid('register-airline-airline').value;
+
+            contract.registerAirline(airline, fromAirline, (error, result) => {
+                display('Register Airline', '', [{
+                    label: 'Register Airline',
+                    error: error,
+                    value: result.airline + ' (' + result.fromAirline + ')',
+                }]);
+                if (!error)
+                    addOption(result.airline, airlineSelectIDs);
             });
-        })
-    
+        });
+
+        DOM.elid('fund').addEventListener('click', () => {
+            let airline = DOM.elid('fund-airline').value;
+            let amount = DOM.elid('fund-amount').value;
+
+            contract.fundAirline(airline, amount, (error, result) => {
+                display('Fund Airline', '', [{
+                    label: 'Fund Airline',
+                    error: error,
+                    value: result.airline,
+                }]);
+            });
+        });
+
+        DOM.elid('register-flight').addEventListener('click', () => {
+            let airline = DOM.elid('register-flight-airline').value;
+            let flight = DOM.elid('register-flight-number').value;
+            let timestamp = DOM.elid('register-flight-timestamp').value;
+
+            contract.registerFlight(airline, flight, timestamp, (error, result) => {
+                let val = result.flight + ' ;; ' + result.timestamp;
+                display('Flight Registration', '', [{
+                    label: 'Fetch Flight Status',
+                    error: error,
+                    value: result.airline + ' - ' + val,
+                }]);
+                if (!error)
+                    addOption(val, flightSelectIDs);
+            });
+        });
+
+        DOM.elid('submit-oracle').addEventListener('click', () => {
+            let airline = DOM.elid('submit-oracle-airline').value;
+            let flight = DOM.elid('submit-oracle-number').value.split(" ;; ")[0];
+            let timestamp = DOM.elid('submit-oracle-number').value.split(" ;; ")[1];
+
+            contract.fetchFlightStatus(airline, flight, timestamp, (error, result) => {
+                display('Oracles', 'Trigger oracles', [{
+                    label: 'Fetch Flight Status',
+                    error: error,
+                    value: result.airline + ' ' + result.flight + ' ' + result.timestamp,
+                }]);
+            });
+        });
+
     });
-    
 
 })();
 
@@ -35,21 +110,39 @@ import './flightsurety.css';
 function display(title, description, results) {
     let displayDiv = DOM.elid("display-wrapper");
     let section = DOM.section();
-    section.appendChild(DOM.h2(title));
-    section.appendChild(DOM.h5(description));
+    section.appendChild(DOM.h3(title));
+    if (description)
+        section.appendChild(DOM.p(description));
     results.map((result) => {
-        let row = section.appendChild(DOM.div({className:'row'}));
-        row.appendChild(DOM.div({className: 'col-sm-4 field'}, result.label));
-        row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.error ? String(result.error) : String(result.value)));
+        let row = section.appendChild(DOM.div({className: 'row'}));
+        row.appendChild(
+            DOM.div({className: 'col text-left field'}, result.label + ' :'));
+        row.appendChild(
+            DOM.div({
+                className: 'col text-left field-value'},
+                result.error ? String(result.error) : String(result.value)));
         section.appendChild(row);
     })
+    section.appendChild(DOM.hr());
     displayDiv.append(section);
-
 }
 
 
+function addOption(optionValue, selectIDs, ...args) {
+    selectIDs.map((selectID) => {
+        let sel = DOM.elid(selectID);
+        sel.appendChild(
+            DOM.option({value: String(optionValue), ...args}, String(optionValue)));
+    });
+}
 
 
-
-
-
+function removeOption(optionValue, selectIDs) {
+    selectIDs.map((selectID) => {
+        let sel = DOM.elid(selectID);
+        for (var i=0; i<sel.length; i++) {
+            if (sel.options[i].value == optionValue)
+                sel.remove(i);
+        }
+    });
+}

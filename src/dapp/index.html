@@ -1,33 +1,110 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>FlightSurety</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>FlightSurety - Passenger</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body>
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand" href="#">FlightSurety</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <a class="navbar-brand" href="#">FlightSurety</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
-            aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </nav>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active" id="li-passenger-container">
+          <a class="nav-link" id="switch-to-passenger-container">Passenger</a>
+        </li>
+        <li class="nav-item" id="li-airline-container">
+          <a class="nav-link" id="switch-to-airline-container">Airline</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
 
-    <main class="container">
+  <main class="container">
 
-        <div id="display-wrapper" class="top-20">
+    <div class="row">
+      <div class="col-12 col-md-8">
+        <h2 class="text-center">Functions</h2>
+        <hr>
+        <div id="passenger-container">
+          <div class="row justify-content-center">
+            <div class="col-6 text-center">
+              <h3>Request Flight Status</h3>
+              <form>
+                <select id="submit-oracle-airline" class="form-control">
+                  <option value="" disabled>Select Airline</option>
+                </select>
+                <select id="submit-oracle-number" class="form-control mt-2">
+                  <option value="" data-timestamp="">Select Flight</option>
+                </select>
+                <btn class="btn btn-primary mt-2" id="submit-oracle">Submit</btn>
+              </form>
+            </div>
+          </div>
         </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        <div id="airline-container" style="display: none;">
+          <div class="row justify-content-center">
+            <div class="col-6 text-center">
+              <h3>Register Airline</h3>
+              <form>
+                <select id="register-airline-from-airline" class="form-control">
+                  <option value="" disabled>From Airline</option>
+                </select>
+                <input type="text" id="register-airline-airline" placeholder="Airline" class="form-control mt-2">
+                <btn class="btn btn-primary mt-2" id="register-airline">Submit</btn>
+              </form>
+            </div>
+          </div>
+          <hr>
+          <div class="row justify-content-center">
+            <div class="col-6 text-center">
+              <h3>Fund Airline</h3>
+              <form>
+                <select id="fund-airline" class="form-control">
+                  <option value="" disabled>Fund Airline</option>
+                </select>
+                <input type="number" id="fund-amount" placeholder="Amount" class="form-control mt-2">
+                <btn class="btn btn-primary mt-2" id="fund">Submit</btn>
+              </form>
+            </div>
+          </div>
+          <hr>
+          <div class="row justify-content-center">
+            <div class="col-6 text-center">
+              <h3>Register Flight</h3>
+              <form>
+                <select id="register-flight-airline" class="form-control">
+                  <option value="" disabled>Select Airline</option>
+                </select>
+                <input type="text" id="register-flight-number" placeholder="Flight" class="form-control mt-2">
+                <input type="number" id="register-flight-timestamp" placeholder="Timestamp" class="form-control mt-2">
+                <btn class="btn btn-primary mt-2" id="register-flight">Submit</btn>
+              </form>
+            </div>
+          </div>
         </div>
-    </main>
+      </div>
+      <div class="col-12 col-md-4">
+        <div id="display-wrapper">
+          <h2 class="text-center">Log</h2>
+          <hr>
+        </div>
+      </div>
+    </div>
 
+  </main>
+
+  <!--Start Bootstrap requirements-->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <!--End Bootstrap requirements-->
 </body>
-
 </html>

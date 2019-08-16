@@ -17,6 +17,12 @@ To install, download or clone the repo, then:
 `npm install`
 `truffle compile`
 
+## Run Ganache
+
+Since we need 20 oracles, start with 30+ accounts (use mnemonic from [truffle.js](./truffle.js))
+
+`ganache-cli -a 40 -m <mnemonic>`
+
 ## Develop Client
 
 To run truffle tests:

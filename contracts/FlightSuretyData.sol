@@ -74,7 +74,7 @@ contract FlightSuretyData is Ownable {
     */
     modifier requireIsOperational()
     {
-        require(operational, "Contract is currently not operational");
+        require(operational, "Data contract is currently not operational");
         _;
     }
 
@@ -199,11 +199,12 @@ contract FlightSuretyData is Ownable {
         requireIsOperational
     {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
-        Flight storage f = flights[flightKey];
+        Flight memory f;
         f.airline = airline;
         f.flight = flight;
         f.timestamp = timestamp;
         f.isProcessed = false;
+        flights[flightKey] = f;
         emit FlightRegistered(flightKey, airline, flight, timestamp);
     }
 

@@ -4,39 +4,46 @@ body {
     background-size: cover;
 }
 
+a.nav-link {
+    cursor: pointer;
+}
+
 .container {
     margin-top: 400px;
+    margin-bottom: 50px;
     background-color: #000;
     opacity: 0.9;
     color: #fff;
     padding: 40px;
 }
 
-.top-20 {
-    margin-top: 20px;
-}
-
-h5 {
-    color: #999999;
-}
-
-section {
-    margin-bottom: 50px;
+p {
+    color: #999;
 }
 
 .field {
-    font-weight: bold;
     text-align: right;
 }
 
 .field-value {
-    color: #0e7fa8;
+    color: #007bff;
 }
 
-label.form {
-    font-size: 14px;
-    margin-right: 20px;
+hr {
+    border: none;
+    border-top: 3px double #aaa;
+    color: #aaa;
+    overflow: visible;
+    text-align: center;
+    height: 5px;
+    margin-top: 25px;
+    margin-bottom: 25px;
 }
-input {
-    margin-right: 30px;
+
+hr:after {
+    background: #000;
+    content: '§';
+    padding: 0 4px;
+    position: relative;
+    top: -13px;
 }

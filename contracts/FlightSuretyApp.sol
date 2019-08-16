@@ -89,7 +89,7 @@ contract FlightSuretyApp is Ownable {
     */
     modifier requireIsOperational()
     {
-        require(operational, "Contract is currently not operational");
+        require(operational, "App contract is currently not operational");
         _;
     }
 
@@ -100,7 +100,7 @@ contract FlightSuretyApp is Ownable {
     {
         require(
             flightSuretyData.isRegisteredAirline(msg.sender),
-            "Contract is currently not operational"
+            "Airline is not registered"
         );
         _;
     }
