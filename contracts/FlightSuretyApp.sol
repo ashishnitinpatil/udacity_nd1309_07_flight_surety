@@ -10,12 +10,12 @@ contract FlightSuretyApp is Ownable {
     FlightSuretyData flightSuretyData;
 
     // Flight status codes
-    uint8 private constant STATUS_CODE_UNKNOWN = 0;
-    uint8 private constant STATUS_CODE_ON_TIME = 10;
-    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
-    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
-    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
+    uint8 public constant STATUS_CODE_UNKNOWN = 0;
+    uint8 public constant STATUS_CODE_ON_TIME = 10;
+    uint8 public constant STATUS_CODE_LATE_AIRLINE = 20;
+    uint8 public constant STATUS_CODE_LATE_WEATHER = 30;
+    uint8 public constant STATUS_CODE_LATE_TECHNICAL = 40;
+    uint8 public constant STATUS_CODE_LATE_OTHER = 50;
 
     // Blocks all state changes throughout the contract if false
     bool private operational = true;
@@ -35,10 +35,12 @@ contract FlightSuretyApp is Ownable {
     uint256 public constant MAX_PREMIUM = 1 ether;
 
     // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 3;
+    uint256 public constant MIN_RESPONSES = 2;
 
     // Payout multiplier in case of flight delay due to airline fault
-    uint256 private constant AIRLINE_FAULT_PAYOUT_MULT = 1_5;
+    // Solidity doesn't support floats, so has to be a fraction
+    uint256 public constant PAYOUT_NUMERATOR = 3;
+    uint256 public constant PAYOUT_DENOMINATOR = 2;
 
     struct Oracle {
         bool isRegistered;
@@ -118,6 +120,18 @@ contract FlightSuretyApp is Ownable {
     }
 
     /**
+    * @dev Modifier that requires sender to have registered as an Oracle
+    */
+    modifier requireRegisteredOracle()
+    {
+        require(
+            oracles[msg.sender].isRegistered,
+            "Airline has not contributed enough funding"
+        );
+        _;
+    }
+
+    /**
     * @dev Contract constructor
     *      Ideal deployment by an airline that also deployed the dataContract
     *      Authorizes constructed contract to access dataContract
@@ -133,7 +147,7 @@ contract FlightSuretyApp is Ownable {
     }
 
     /**
-    * @dev Contract constructor
+    * @dev Returns current operating status of the contract
     */
     function isOperational()
         public
@@ -141,6 +155,28 @@ contract FlightSuretyApp is Ownable {
         returns(bool)
     {
         return operational;
+    }
+
+    /**
+    * @dev Returns current oracle response data with status codes
+    */
+    function getOracleResponseData(
+        uint8 index,
+        address airline,
+        string memory flight,
+        uint256 timestamp,
+        uint8 statusCode
+    )
+        public
+        view
+        returns(address, bool, address[] memory)
+    {
+        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+        return (
+            oracleResponses[key].requester,
+            oracleResponses[key].isOpen,
+            oracleResponses[key].responses[statusCode]
+        );
     }
 
     /**
@@ -307,16 +343,23 @@ contract FlightSuretyApp is Ownable {
     * @dev Called after oracle has updated flight status
     */
     function processFlightStatus(
-        bytes32 flightKey,
+        address airline,
+        string memory flight,
+        uint256 timestamp,
         uint8 statusCode
     )
         internal
     {
-        require(!flightSuretyData.isFlightProcessed(flightKey));
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        require(
+            !flightSuretyData.isFlightProcessed(flightKey),
+            "Flight is already processed"
+        );
         if(statusCode == STATUS_CODE_LATE_AIRLINE) {
-            flightSuretyData.creditInsurees(flightKey, AIRLINE_FAULT_PAYOUT_MULT);
+            flightSuretyData.creditInsurees(
+                flightKey, PAYOUT_NUMERATOR, PAYOUT_DENOMINATOR);
         }
-        flightSuretyData.markFlightAsProcessed(flightKey);
+        flightSuretyData.markFlightAsProcessed(flightKey, statusCode);
     }
 
     // Generate a request for oracles to fetch flight information
@@ -378,6 +421,7 @@ contract FlightSuretyApp is Ownable {
         uint8 statusCode
     )
         external
+        requireRegisteredOracle
     {
         require(
             (oracles[msg.sender].indexes[0] == index)
@@ -405,7 +449,7 @@ contract FlightSuretyApp is Ownable {
             oracleResponses[key].isOpen = false;
 
             // Handle flight status as appropriate
-            processFlightStatus(key, statusCode);
+            processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
 
@@ -518,10 +562,10 @@ interface FlightSuretyData {
         view
         returns(bool);
 
-    function creditInsurees(bytes32 flightKey, uint256 mult)
+    function creditInsurees(bytes32 flightKey, uint256 numerator, uint256 denominator)
         external;
 
-    function markFlightAsProcessed(bytes32 flightKey)
+    function markFlightAsProcessed(bytes32 flightKey, uint8 statusCode)
         external;
 
     function payInsuree(address payable insuree, uint256 amount)

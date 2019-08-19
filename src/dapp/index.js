@@ -6,16 +6,19 @@ import './flightsurety.css';
 (async() => {
 
     let result = null;
+    let separator = ' ;; ';
     let airlineSelectIDs = [
         'buy-insurance-airline',
         'register-airline-from-airline',
         'register-flight-airline',
         'fund-airline',
         'submit-oracle-airline',
+        'fetch-flight-airline',
     ];
     let flightSelectIDs = [
-        'submit-oracle-number',
         'buy-insurance-flight',
+        'submit-oracle-number',
+        'fetch-flight-number',
     ];
 
     let contract = new Contract('localhost', () => {
@@ -36,7 +39,7 @@ import './flightsurety.css';
             display('Operational Status', [{
                     label: 'Operational Status',
                     error: error,
-                    value: result
+                    value: result,
                 }]);
         });
 
@@ -100,9 +103,13 @@ import './flightsurety.css';
             let airline = DOM.elid('register-flight-airline').value;
             let flight = DOM.elid('register-flight-number').value;
             let timestamp = DOM.elid('register-flight-timestamp').value;
+            let now = new Date().getTime() / 1000;
+            if (timestamp < now) {
+                alert('Kindly enter timestamp greater than current time ('+now.toFixed()+')');
+            }
 
             contract.registerFlight(airline, flight, timestamp, (error, result) => {
-                let val = result.flight + ' ;; ' + result.timestamp;
+                let val = result.flight + separator + result.timestamp;
                 display('Flight Registration', [{
                     label: 'Fetch Flight Status',
                     error: error,
@@ -115,8 +122,8 @@ import './flightsurety.css';
 
         DOM.elid('buy-insurance').addEventListener('click', () => {
             let airline = DOM.elid('buy-insurance-airline').value;
-            let flight = DOM.elid('buy-insurance-flight').value.split(" ;; ")[0];
-            let timestamp = DOM.elid('buy-insurance-flight').value.split(" ;; ")[1];
+            let flight = DOM.elid('buy-insurance-flight').value.split(separator)[0];
+            let timestamp = DOM.elid('buy-insurance-flight').value.split(separator)[1];
             let amount = DOM.elid('buy-insurance-amount').value;
 
             contract.buyInsurance(airline, flight, timestamp, amount, (error, result) => {
@@ -130,10 +137,10 @@ import './flightsurety.css';
 
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let airline = DOM.elid('submit-oracle-airline').value;
-            let flight = DOM.elid('submit-oracle-number').value.split(" ;; ")[0];
-            let timestamp = DOM.elid('submit-oracle-number').value.split(" ;; ")[1];
+            let flight = DOM.elid('submit-oracle-number').value.split(separator)[0];
+            let timestamp = DOM.elid('submit-oracle-number').value.split(separator)[1];
 
-            contract.fetchFlightStatus(airline, flight, timestamp, (error, result) => {
+            contract.requestFlightStatus(airline, flight, timestamp, (error, result) => {
                 display('Oracles', [{
                     label: 'Fetch Flight Status',
                     error: error,
@@ -142,6 +149,59 @@ import './flightsurety.css';
             });
         });
 
+        DOM.elid('fetch-flight').addEventListener('click', () => {
+            let airline = DOM.elid('fetch-flight-airline').value;
+            let flight = DOM.elid('fetch-flight-number').value.split(separator)[0];
+            let timestamp = DOM.elid('fetch-flight-number').value.split(separator)[1];
+
+            contract.getFlightStatus(airline, flight, timestamp, (error, result) => {
+                display('Flight Status', [{
+                    label: 'Status',
+                    error: error,
+                    value: result,
+                }]);
+            });
+        });
+
+        DOM.elid('fetch-oracle').addEventListener('click', () => {
+            let index = DOM.elid('fetch-oracle-index').value;
+            let airline = DOM.elid('fetch-flight-airline').value;
+            let flight = DOM.elid('fetch-flight-number').value.split(separator)[0];
+            let timestamp = DOM.elid('fetch-flight-number').value.split(separator)[1];
+            let statusCode = DOM.elid('fetch-oracle-status-code').value;
+
+            contract.getOracleResponseData(
+                index, airline, flight, timestamp, statusCode, (error, result) => {
+                    display('Oracle Verdict', [{
+                        label: 'Response',
+                        error: error,
+                        value: JSON.stringify(result),
+                    }]);
+            });
+        });
+
+        DOM.elid('funds-balance').addEventListener('click', () => {
+            contract.getFundsBalance((error, result) => {
+                display('Funds Balance', [{
+                    label: 'Amount',
+                    error: error,
+                    value: contract.web3.utils.fromWei(String(result), 'ether') + ' ether',
+                }]);
+            });
+        });
+
+        DOM.elid('funds-withdraw').addEventListener('click', () => {
+            let amount = DOM.elid('funds-withdraw-amount').value;
+            amount = contract.web3.utils.toWei(String(amount), 'ether');
+
+            contract.withdrawFunds(amount, (error, result) => {
+                display('Withdraw Funds', [{
+                    label: 'Amount',
+                    error: error,
+                    value: contract.web3.utils.fromWei(String(result.amount), 'ether') + ' ether',
+                }]);
+            });
+        });
     });
 
 })();

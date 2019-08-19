@@ -112,14 +112,14 @@ export default class Contract {
         }
         if (!self.checkPassengerSetup())
             return;
-        self.metamaskFlightSuretyApp.methods
+        self.flightSuretyApp.methods
             .buyInsurance(payload.airline, payload.flight, payload.timestamp)
             .send({from: self.metamaskAccount, value: payload.amount, gas: self.gas,
                    gasPrice: self.gasPrice},
                 (error, result) => {callback(error, payload);});
     }
 
-    fetchFlightStatus(airline, flight, timestamp, callback) {
+    requestFlightStatus(airline, flight, timestamp, callback) {
         let self = this;
         let payload = {
             airline: airline,
@@ -129,6 +129,50 @@ export default class Contract {
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({from: self.owner}, (error, result) => {
+                callback(error, payload);
+            });
+    }
+
+    getFlightStatus(airline, flight, timestamp, callback) {
+        let self = this;
+        let payload = {
+            airline: airline,
+            flight: flight,
+            timestamp: timestamp,
+        }
+        self.flightSuretyData.methods
+            .getFlightStatus(payload.airline, payload.flight, payload.timestamp)
+            .call({from: self.owner}, callback);
+    }
+
+    getOracleResponseData(index, airline, flight, timestamp, statusCode, callback) {
+        let self = this;
+        let payload = {
+            index: index,
+            airline: airline,
+            flight: flight,
+            timestamp: timestamp,
+            statusCode: statusCode,
+        }
+        self.flightSuretyApp.methods
+            .getOracleResponseData(payload.index, payload.airline, payload.flight,
+                payload.timestamp, payload.statusCode)
+            .call({from: self.owner}, callback);
+    }
+
+    getFundsBalance(callback) {
+        let self = this;
+        self.flightSuretyData.methods
+            .getFundsBalance()
+            .call({from: self.metamaskAccount}, callback);
+    }
+
+    withdrawFunds(amount, callback) {
+        let self = this;
+        let payload = {amount: amount};
+        self.flightSuretyApp.methods
+            .withdraw(payload.amount)
+            .send({from: self.metamaskAccount}, (error, result) => {
                 callback(error, payload);
             });
     }

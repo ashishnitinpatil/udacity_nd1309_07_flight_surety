@@ -1,5 +1,5 @@
-var Test = require('../config/testConfig.js');
-var BigNumber = require('bignumber.js');
+let Test = require('../config/testConfig.js');
+// let BigNumber = require('bignumber.js');
 const truffleAssert = require('truffle-assertions');
 
 

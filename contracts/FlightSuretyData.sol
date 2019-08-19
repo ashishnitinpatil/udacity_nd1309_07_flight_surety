@@ -226,18 +226,18 @@ contract FlightSuretyData is Ownable {
         require(flights[flightKey].timestamp > 0, "Flight not registered");
         // Prevent double purchase attempts
         require(
-            flights[flightKey].insuredAmounts[msg.sender] == 0,
+            flights[flightKey].insuredAmounts[tx.origin] == 0,
             "Cannot buy more than once"
         );
-        flights[flightKey].insurees.push(msg.sender);
-        flights[flightKey].insuredAmounts[msg.sender] = msg.value;
-        emit InsuranceBought(airline, flight, timestamp, msg.sender, msg.value);
+        flights[flightKey].insurees.push(tx.origin);
+        flights[flightKey].insuredAmounts[tx.origin] = msg.value;
+        emit InsuranceBought(airline, flight, timestamp, tx.origin, msg.value);
     }
 
     /**
     * @dev Credits payouts to insurees
     */
-    function creditInsurees(bytes32 flightKey, uint256 mult)
+    function creditInsurees(bytes32 flightKey, uint256 numerator, uint256 denominator)
         external
         requireAuthorizedContract
         requireIsOperational
@@ -247,7 +247,8 @@ contract FlightSuretyData is Ownable {
         uint256 payout = 0;
         for(uint256 i=0; i < flights[flightKey].insurees.length; i++) {
             insuree = flights[flightKey].insurees[i];
-            payout = flights[flightKey].insuredAmounts[insuree].mul(mult);
+            payout = flights[flightKey].insuredAmounts[insuree];
+            payout = payout * numerator / denominator;
             credits[insuree] = credits[insuree].add(payout);
             totalPayout = totalPayout.add(payout);
         }
@@ -262,12 +263,13 @@ contract FlightSuretyData is Ownable {
     /**
     * @dev Marks given flight as processed
     */
-    function markFlightAsProcessed(bytes32 flightKey)
+    function markFlightAsProcessed(bytes32 flightKey, uint8 statusCode)
         external
         requireAuthorizedContract
         requireIsOperational
     {
         flights[flightKey].isProcessed = true;
+        flights[flightKey].status = statusCode;
     }
 
     /**
@@ -347,6 +349,29 @@ contract FlightSuretyData is Ownable {
         returns(bool)
     {
         return !(flights[flightKey].timestamp != 0 && !flights[flightKey].isProcessed);
+    }
+
+    /**
+    * @dev Returns flight delay status
+    */
+    function getFlightStatus(address airline, string calldata flight, uint256 timestamp)
+        external
+        view
+        returns(uint8)
+    {
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        return flights[flightKey].status;
+    }
+
+    /**
+    * @dev Returns insuree credits balance from payouts
+    */
+    function getFundsBalance()
+        external
+        view
+        returns(uint256)
+    {
+        return credits[msg.sender];
     }
 
     /**

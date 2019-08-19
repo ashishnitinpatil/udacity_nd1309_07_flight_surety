@@ -52,7 +52,7 @@
           <hr>
           <div class="row justify-content-center">
             <div class="col-6 text-center">
-              <h3>Request Flight Status</h3>
+              <h3>Flight Status Update</h3>
               <form>
                 <select id="submit-oracle-airline" class="form-control">
                   <option value="" disabled>Select Airline</option>
@@ -60,7 +60,43 @@
                 <select id="submit-oracle-number" class="form-control mt-2">
                   <option value="" data-timestamp="">Select Flight</option>
                 </select>
-                <btn class="btn btn-primary mt-2" id="submit-oracle">Submit</btn>
+                <btn class="btn btn-primary mt-2" id="submit-oracle">Request Oracle</btn>
+              </form>
+            </div>
+          </div>
+          <hr>
+          <div class="row justify-content-center">
+            <div class="col-6 text-center">
+              <h3>Fetch Oracle Verdict</h3>
+              <form>
+                <select id="fetch-flight-airline" class="form-control">
+                  <option value="" disabled>Select Airline</option>
+                </select>
+                <select id="fetch-flight-number" class="form-control mt-2">
+                  <option value="" data-timestamp="">Select Flight</option>
+                </select>
+                <btn class="btn btn-primary mt-2" id="fetch-flight">Flight Status</btn>
+                <input type="number" id="fetch-oracle-index" placeholder="Index" class="form-control mt-2" min=0 max=9>
+                <select id="fetch-oracle-status-code" class="form-control mt-2">
+                  <option value="">Status Code</option>
+                  <option value="10">ON_TIME</option>
+                  <option value="20">LATE_AIRLINE</option>
+                  <option value="30">LATE_WEATHER</option>
+                  <option value="40">LATE_TECHNICAL</option>
+                  <option value="50">LATE_OTHER</option>
+                </select>
+                <btn class="btn btn-primary mt-2" id="fetch-oracle">Flight Status</btn>
+              </form>
+            </div>
+          </div>
+          <hr>
+          <div class="row justify-content-center">
+            <div class="col-6 text-center">
+              <h3>Payout Funds</h3>
+              <form>
+                <input type="number" id="funds-withdraw-amount" placeholder="Amount (in ETH)" class="form-control mt-2">
+                <btn class="btn btn-primary mt-2" id="funds-balance">Check balance</btn>
+                <btn class="btn btn-primary mt-2" id="funds-withdraw">Withdraw</btn>
               </form>
             </div>
           </div>
